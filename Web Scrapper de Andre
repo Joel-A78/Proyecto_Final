@@ -3,39 +3,83 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 
 def statsf1(num_imagenes):
-   driver = ChromeDriverManager().install()
-   s = Service(driver)
-   opc = Options()
-   opc.add_argument("--window-size=1920,1080")
-   navegador = webdriver.Chrome(service=s, options=opc)
+    driver = ChromeDriverManager().install()
+    s = Service(driver)
+    opc = Options()
+    opc.add_argument("--window-size=1920,1080")
+    navegador = webdriver.Chrome(service=s, options=opc)
 
- 
+    navegador.get("https://www.statsf1.com/es/default.aspx")
 
-   navegador.get("https://www.statsf1.com/es/default.aspx")
-   time.sleep(5)
-   #seccion de estadisticas: victorias por numero href="/es/statistiques/pilote/victoire/nombre.aspx"
-   #ctl00_CPH_Main_Entete_TB_FromGP ID de el selector superior 
-	#ctl00_CPH_Main_Entete_TB_ToGP ID selector inferior
-   
-   searchbarrastats = navegador.find_element(By.ID, "ctl00_HL_StatsH")
-   time.sleep(2)
-   searchbarrastats.click()
-   time.sleep(3)
-   
-   
-   navegador.close()
+    wait = WebDriverWait(navegador, 10)
+
+
+    searchbarrastats = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_HL_StatsH")))
+    searchbarrastats.click()
+    time.sleep(1)
+
+    searchcat1 = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/es/statistiques/pilote/victoire/nombre.aspx']")))
+    searchcat1.click()
+    time.sleep(1)
+
+    clickfechascatsup = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_CPH_Main_Entete_TB_FromGP")))
+    clickfechascatsup.click()
+    time.sleep(2)
+
+
+
+
+    # Primer iframe: seleccionar año 2024
+    wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@src, 'selectgp.aspx')]")))
+
+    selecc2024sup = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//a[contains(@href, 'an=2024') and contains(@href, 'FromGP')]")))
+    selecc2024sup.click()
+
+
+    #falla despues de aquí
+
+                
+    # ❗ Volver al contenido principal porque el primer iframe ya no es válido
+    navegador.switch_to.default_content()
+
+    # ❗ Esperar a que se abra el nuevo iframe (la ventana emergente para seleccionar GP aparece de nuevo)
+    wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@src, 'selectgp.aspx')]")))
+
+    # Ahora clic en "Las Vegas"
+    seleccLV = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//a[@href=\"javascript:SelectGP(1147,'Las Vegas')\"]")
+    ))
+    seleccLV.click()
+
+    # Luego puedes volver al contenido principal si necesitas seguir navegando
+    navegador.switch_to.default_content()
+
+
+
+
+
+
+    
+
+    clickfechascatinf = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_CPH_Main_Entete_TB_ToGP")))
+    clickfechascatinf.click()
+    time.sleep(1)
+
+
+
+
+    navegador.quit()
+
+
 if __name__ == "__main__":
-   statsf1(10)
-
-
-
-
-
-
+    statsf1(10)
 
 
 
