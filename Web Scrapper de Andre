@@ -1,0 +1,47 @@
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+
+
+def statsf1(num_imagenes):
+   driver = ChromeDriverManager().install()
+   s = Service(driver)
+   opc = Options()
+   opc.add_argument("--window-size=1920,1080")
+   navegador = webdriver.Chrome(service=s, options=opc)
+
+   navegador.get("https://www.statsf1.com/es/default.aspx")
+   time.sleep(5)
+
+   searchbarrastats = navegador.find_element(By.ID, "ctl00_HL_StatsH")
+   time.sleep(2)
+   searchbarrastats.click()
+   time.sleep(3)
+
+   navegador.close()
+if __name__ == "__main__":
+   statsf1(10)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
