@@ -20,66 +20,88 @@ def statsf1(num_imagenes):
     wait = WebDriverWait(navegador, 10)
 
 
+
+
+    # Ir a la sección de estadísticas
     searchbarrastats = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_HL_StatsH")))
     searchbarrastats.click()
-    time.sleep(1)
 
-    searchcat1 = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/es/statistiques/pilote/victoire/nombre.aspx']")))
+    searchcat1 = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//a[@href='/es/statistiques/pilote/victoire/nombre.aspx']")))
     searchcat1.click()
-    time.sleep(1)
 
+    # Abrir selector superior
     clickfechascatsup = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_CPH_Main_Entete_TB_FromGP")))
     clickfechascatsup.click()
-    time.sleep(2)
 
-
-
-
-    # Primer iframe: seleccionar año 2024
+    # Entrar al primer iframe para seleccionar año 2024
     wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@src, 'selectgp.aspx')]")))
-
     selecc2024sup = wait.until(EC.element_to_be_clickable(
         (By.XPATH, "//a[contains(@href, 'an=2024') and contains(@href, 'FromGP')]")))
     selecc2024sup.click()
 
+    time.sleep(2)
 
-    #falla despues de aquí
+    seleccionarvegas = wait.until(EC.element_to_be_clickable(
+        navegador.find_element(By.XPATH, "//a[contains(@href, \"Las Vegas\")]")
 
-                
-    # ❗ Volver al contenido principal porque el primer iframe ya no es válido
-    navegador.switch_to.default_content()
-
-    # ❗ Esperar a que se abra el nuevo iframe (la ventana emergente para seleccionar GP aparece de nuevo)
-    wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@src, 'selectgp.aspx')]")))
-
-    # Ahora clic en "Las Vegas"
-    seleccLV = wait.until(EC.element_to_be_clickable(
-        (By.XPATH, "//a[@href=\"javascript:SelectGP(1147,'Las Vegas')\"]")
     ))
-    seleccLV.click()
+    seleccionarvegas.click()
 
-    # Luego puedes volver al contenido principal si necesitas seguir navegando
-    navegador.switch_to.default_content()
-
-
-
-
-
-
-    
-
-    clickfechascatinf = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_CPH_Main_Entete_TB_ToGP")))
-    clickfechascatinf.click()
     time.sleep(1)
 
+    #seleccionar segundo selector
+
+    # Volver al contenido principal (muy importante)
+    navegador.switch_to.default_content()
 
 
+
+
+
+    # selecciona la segunda categoria
+    clickfechascatinf = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_CPH_Main_Entete_TB_ToGP")))
+    clickfechascatinf.click()
+
+
+
+
+    # Esperar aa la ventana emergente
+    wait.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@src, 'selectgp.aspx')]")))
+
+    # Buscar el link de 2025 en el selector inferior
+    selecc2025inf = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//a[contains(@href, 'an=2025') and contains(@href, 'target=ToGP')]")
+    ))
+    selecc2025inf.click()
+
+
+    time.sleep(2)
+
+    seleccionarvegas2 = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//a[contains(@href, \"SelectGP(1147,'Las Vegas')\")]")
+    ))
+    seleccionarvegas2.click()
+    time.sleep(1)
+
+    # Asegurarse de volver al contenido principal (por si estás aún dentro de algún iframe)
+    navegador.switch_to.default_content()
+
+    # Esperar que el botón "Ok" esté visible y clickeable
+    botonconfirmar = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_CPH_Main_Entete_LB_Ok2")))
+    botonconfirmar.click()
+
+    time.sleep(2)
+
+    
 
     navegador.quit()
 
 
 if __name__ == "__main__":
     statsf1(10)
+
+
 
 
 
