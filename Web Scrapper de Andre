@@ -123,5 +123,11 @@ def statsf1(num_imagenes):
 
     navegador.quit()
 
+
+#### OJO UNA VEZ QUE SE HAYA CORRIDO POR PRIMERA VEZ QUITAR O CAMBIAR EL NOMBRE DE ESTA LINEA PQ DA ERRROR
+    df.to_csv("dfpr/resultados_statsf2.csv", index=False, encoding='utf-8')
+    navegador.quit()
+    #################################################################################################
+
 if __name__ == "__main__":
     statsf1(10)
