@@ -1,23 +1,27 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-
 def insertar():
+    ruta = "C:/Users/djate/PycharmProjects/pythonProject/Sem 5/Extraccion/dfpr/resultados_statsf2.csv"
     cadena_con = "mysql+mysqlconnector://root:12345678@127.0.0.2/f1"
     engine = create_engine(cadena_con)
     try:
         with engine.connect() as conexion:
-            df = pd.read_csv("PF/bd.csv", index_col=0)
+            df = pd.read_csv(ruta, index_col=0)
             print(df)
             print("Conectado exitosamente")
+
+            # Insertar en la base de datos
             df.to_sql("f1", con=conexion, if_exists="replace", index=False)
+
+            # Guardar DataFrame como CSV
+            df.to_csv(ruta, index=False)
+            print("Archivo guardado correctamente.")
     except Exception as e:
         print("Error al conectar o insertar:", e)
 
-
 def consultar():
     pass
-
 
 if __name__ == "__main__":
     insertar()
