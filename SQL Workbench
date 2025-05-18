@@ -1,0 +1,10 @@
+CREATE DATABASE f1;
+USE f1;
+
+CREATE TABLE Pilotos (
+    n INT,
+    Piloto VARCHAR(100),
+    Nb INT,
+    Porcentaje_Nb_GP DECIMAL(6,2)
+);
+
