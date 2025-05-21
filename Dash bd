@@ -8,15 +8,18 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html, callback
 
 
-# estilos barra lateral
+# Estilo Gaming para el Sidebar
 SIDEBAR_STYLE = {
-    "position": "fixed",  # barra a la izquierda
-    "top": 0,  # empieza en la parte superior
-    "left": 0,  # al lado izquierdo
-    "bottom": 0,  # hasta el final
-    "width": "16rem",  # ancho barra
-    "padding": "2rem 1rem",  # espaciado interno
-    "background-color": "#f8f9fa",  # color de fondo
+    "position": "fixed",
+    "top": "0",     # empieza en la parte superior
+    "left": "0",      #izquierrda
+    "bottom": "0",    # hasta el final
+    "width": "17rem",    #barra ancha
+    "padding": "2rem 1rem",   #espacio
+    "background-color": "#f8f9fa",     #color de fondo
+    "color": "#e94560",
+    "box-shadow": "0 0 12px #0f3460",
+    "font-family": "'Orbitron', sans-serif",
 }
 
 # estilos contenido principal
