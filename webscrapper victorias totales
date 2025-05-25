@@ -1,1 +1,61 @@
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+import pandas as pd
+import os
 
+
+
+def victoriastot ():
+
+    driver = ChromeDriverManager().install()
+    s = Service(driver)
+    opc = Options()
+    opc.add_argument("--window-size=1920,1080")
+    navegador = webdriver.Chrome(service=s, options=opc)
+
+    navegador.get("https://www.statsf1.com/es/default.aspx")
+
+    wait = WebDriverWait(navegador, 10)
+
+    searchbarrastats = wait.until(EC.element_to_be_clickable((By.ID, "ctl00_HL_StatsH")))
+    searchbarrastats.click()
+
+    searchcat1 = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//a[@href='/es/statistiques/pilote/victoire/circuit.aspx']")))
+    searchcat1.click()
+
+    tabla = wait.until(EC.presence_of_element_located((By.ID, "ctl00_CPH_Main_GV_Stats")))
+
+    # 2. Sacar todas las filas
+    filas = tabla.find_elements(By.XPATH, ".//tbody/tr")
+
+    # 3. Extraer los datos de las filas
+    datos = []
+
+    for fila in filas:
+        celdas = fila.find_elements(By.TAG_NAME, "td")
+        if len(celdas) == 4:  # 4 columnas: n, Piloto, Nb, %/Nb GP
+            n = celdas[0].text.strip()
+            piloto = celdas[1].text.strip()
+            nb = celdas[2].text.strip()
+            circuito = celdas[3].text.strip()
+
+            datos.append([n, piloto, nb, circuito])
+
+    # 4. Crear el DataFrame
+    columnas = ["n", "Piloto", "Nb", "%/Nb GP"]
+    df = pd.DataFrame(datos, columns=columnas)
+
+    # 5. Mostrar el DataFrame
+    print(df)
+
+    df.to_csv("dfpr/victoriastot.csv", index=False, encoding='utf-8')
+
+if __name__ == "__main__":
+        victoriastot()
