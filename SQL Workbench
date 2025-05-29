@@ -8,3 +8,12 @@ CREATE TABLE pilotos (
     Porcentaje_Nb_GP DECIMAL(6,2)
 );
 
+CREATE TABLE victorias (
+	n INT,
+    Piloto VARCHAR (100),
+    Nb INT,
+    Porcentaje_Nb_GP VARCHAR(100)
+);
+
+SELECT * FROM pilotos;
+SELECT * FROM victorias;
