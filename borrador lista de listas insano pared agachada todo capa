@@ -1,0 +1,83 @@
+import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+
+
+def victoriastot():
+    # Configuración inicial
+    driver = ChromeDriverManager().install()
+    s = Service(driver)
+    opc = Options()
+    opc.add_argument("--window-size=1920,1080")
+    navegador = webdriver.Chrome(service=s, options=opc)
+
+    # URL principal de la página de estadísticas
+    navegador.get("https://www.statsf1.com/es/default.aspx")
+
+    # Esperar que cargue la página
+    wait = WebDriverWait(navegador, 10)
+
+    # Lista de enlaces con las URLs de las páginas que contienen las estadísticas
+    links_stats = [
+        "//a[@href='/es/statistiques/pilote/victoire/circuit.aspx']",  # Enlace a victorias por circuito
+        "//a[@href='/es/statistiques/pilote/victoire/total.aspx']",  # Otro enlace con diferentes estadísticas
+        # Agregar más enlaces aquí si lo necesitas
+    ]
+
+    # Lista de estructuras de columnas para las tablas
+    columnas = [
+        ["n", "Piloto", "Nb", "%/Nb GP"],  # Estructura para la primera tabla
+        ["n", "Piloto", "Nb", "Circuito"],  # Estructura para la segunda tabla
+        # Agregar más estructuras de columnas si lo necesitas
+    ]
+
+    # Iterar sobre los enlaces y procesar las estadísticas
+    for idx, link_xpath in enumerate(links_stats):
+        try:
+            # Hacer clic en el enlace correspondiente
+            searchbarrastats = wait.until(EC.element_to_be_clickable((By.XPATH, link_xpath)))
+            searchbarrastats.click()
+
+            # Esperar que cargue la tabla
+            tabla = wait.until(EC.presence_of_element_located((By.ID, "ctl00_CPH_Main_GV_Stats")))
+
+            # Sacar todas las filas
+            filas = tabla.find_elements(By.XPATH, ".//tbody/tr")
+
+            # Extraer los datos de las filas
+            datos = []
+
+            for fila in filas:
+                celdas = fila.find_elements(By.TAG_NAME, "td")
+                if len(celdas) == len(columnas[idx]):  # Asegurarse que coinciden las columnas
+                    n = celdas[0].text.strip()
+                    piloto = celdas[1].text.strip()
+                    nb = celdas[2].text.strip()
+                    otro_dato = celdas[3].text.strip()
+
+                    # Dependiendo de la estructura, agrega los datos correspondientes
+                    if idx == 0:  # Para la primera tabla
+                        datos.append([n, piloto, nb, otro_dato])
+                    elif idx == 1:  # Para la segunda tabla
+                        datos.append([n, piloto, nb, otro_dato])
+
+            # Crear el DataFrame para la tabla
+            df = pd.DataFrame(datos, columns=columnas[idx])
+
+            # Guardar el DataFrame en un archivo CSV
+            df.to_csv(f"victorias_{idx}.csv", index=False, encoding='utf-8')
+            print(f"Datos de la tabla {idx} guardados en victorias_{idx}.csv")
+        except Exception as e:
+            print(f"Error al procesar el enlace {idx}: {e}")
+
+    # Cerrar el navegador al final
+    navegador.quit()
+
+
+if __name__ == "__main__":
+    victoriastot()
