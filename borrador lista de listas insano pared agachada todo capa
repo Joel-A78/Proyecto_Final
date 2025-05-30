@@ -25,7 +25,7 @@ def victoriastot():
     # Lista de enlaces con las URLs de las páginas que contienen las estadísticas
     links_stats = [
         "//a[@href='/es/statistiques/pilote/victoire/circuit.aspx']",  # Enlace a victorias por circuito
-        "//a[@href='/es/statistiques/pilote/victoire/total.aspx']",  # Otro enlace con diferentes estadísticas
+        "//a[@href='/es/statistiques/pilote/meilleurtour/circuit.aspx']",  # Otro enlace con diferentes estadísticas
         # Agregar más enlaces aquí si lo necesitas
     ]
 
