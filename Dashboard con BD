@@ -1,1 +1,131 @@
+import dash
+import dash_bootstrap_components as dbc
+import pandas as pd
+import plotly.express as px
+from dash import Input, Output, dcc, html
+from sqlalchemy import create_engine
 
+# Función para conectar y traer datos de MySQL
+def nombre_BD():
+    cadena_con = "mysql+mysqlconnector://root:12345678@127.0.0.2/f1"
+    engine = create_engine(cadena_con)
+
+    try:
+        with engine.connect() as conexion:
+            df = pd.read_sql("SELECT * FROM pilotos", conexion)  # Cambia 'pilotos' por tu tabla real si es necesario
+            return df
+    except Exception as e:
+        print("Error al conectar a MySQL:", e)
+        return pd.DataFrame()
+
+# Carga los datos al iniciar la app
+df = nombre_BD()
+
+app = dash.Dash(
+    external_stylesheets=[dbc.themes.MINTY],
+    index_string="""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            {%metas%}
+            <title>{%title%}</title>
+            {%favicon%}
+            {%css%}
+            <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+        </head>
+        <body>
+            {%app_entry%}
+            <footer>
+                {%config%}
+                {%scripts%}
+                {%renderer%}
+            </footer>
+        </body>
+    </html>
+    """
+)
+
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": "0",
+    "left": "0",
+    "bottom": "0",
+    "width": "17rem",
+    "padding": "2rem 1rem",
+    "background-color": "#1a1a2e",
+    "color": "#e94560",
+    "box-shadow": "0 0 12px #0f3460",
+    "font-family": "'Orbitron', sans-serif",
+}
+
+CONTENT_STYLE = {
+    "margin-left": "18rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1.5rem",
+    "background-color": "#16213e",
+    "color": "#eaeaea",
+    "font-family": "'Orbitron', sans-serif",
+    "min-height": "100vh",
+}
+
+sidebar = html.Div(
+    [
+        html.H2(" F1 STATS 🏎️", className="display-4"),
+        html.Hr(),
+        html.P("A simple sidebar layout with navigation links", className="lead"),
+        dbc.Nav(
+            [
+                dbc.NavLink("Contenido", href="/", active="exact"),
+                dbc.NavLink("Introducción", href="/page-1", active="exact"),
+                dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                dbc.NavLink("Page 3", href="/page-3", active="exact"),
+                dbc.NavLink("Page 4", href="/page-4", active="exact"),
+            ],
+            vertical=True,
+            pills=True,
+        ),
+    ],
+    style=SIDEBAR_STYLE,
+)
+
+content = html.Div(id="page-content", style=CONTENT_STYLE)
+
+app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
+
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
+def render_page_content(pathname):
+    if pathname == "/":
+        return html.P("Página principal", style={"font-size": "20px"})
+    elif pathname == "/page-1":
+        return html.P("Introducción")
+    elif pathname == "/page-2":
+        if df.empty:
+            return html.P("No se pudieron cargar los datos.")
+        fig = px.bar(df, x="piloto", y="victorias", title="Victorias por piloto")  # Ajusta nombres si hace falta
+        return html.Div([
+            html.H3("Gráfico de victorias por piloto"),
+            dcc.Graph(figure=fig)
+        ])
+    elif pathname == "/page-3":
+        if df.empty:
+            return html.P("No se pudieron cargar los datos.")
+        # Mostrar tabla simple con Dash DataTable
+        return dash.dash_table.DataTable(
+            data=df.to_dict('records'),
+            columns=[{"name": i, "id": i} for i in df.columns],
+            page_size=10,
+            style_table={'overflowX': 'auto'},
+            style_header={'backgroundColor': '#1a1a2e', 'color': 'white'},
+            style_cell={'backgroundColor': '#16213e', 'color': 'white', 'textAlign': 'center'},
+        )
+    elif pathname == "/page-4":
+        return html.P("Contenido de la página 4")
+
+    return html.Div([
+        html.H1("404: Not found", className="text-danger"),
+        html.Hr(),
+        html.P(f"The pathname {pathname} was not recognised..."),
+    ])
+
+if __name__ == "__main__":
+    app.run(debug=True)
