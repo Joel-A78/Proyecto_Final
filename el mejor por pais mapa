@@ -1,1 +1,41 @@
 #mapitaa
+#este o scater geo
+### 1
+import pandas as pd
+from geopy.geocoders import Nominatim #descarguen geopy
+from geopy.extra.rate_limiter import RateLimiter
+import plotly.express as px
+
+### 2 cosas para q jale el geopy
+def geolocalizar_ciudades(df, columna_ciudad):
+    df = df.copy()
+    geolocator = Nominatim(user_agent="f1-mapa")
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    df['location'] = df[columna_ciudad].apply(geocode)
+    df['lat'] = df['location'].apply(lambda loc: loc.latitude if loc else None)
+    df['lon'] = df['location'].apply(lambda loc: loc.longitude if loc else None)
+    return df.dropna(subset=['lat', 'lon'])
+
+### 3 configuracion para el mapa
+def graficar_mapa(df):
+    fig = px.scatter_geo(df,
+                         lat='lat',
+                         lon='lon',
+                         text='GP',
+                         hover_name='Piloto',
+                         size_max=10,
+                         title='Ciudades donde los pilotos han ganado más GPs',
+                         template='plotly_dark')#aca el tema pa q se vea chido otras opc 'plotly_white' o otro sea born
+    fig.update_geos(projection_type="natural earth")
+    fig.show()
+    fig.write_html("mapa_f1.html")
+
+##pipipipi
+if __name__ == "__main__":
+    ruta_csv = "victoriastot.csv"
+    df = pd.read_csv(ruta_csv)
+    df.columns = df.columns.str.strip()#espacios
+    if '%/Nb GP' in df.columns:
+        df.rename(columns={'%/Nb GP': 'GP'}, inplace=True)
+    df_geo = geolocalizar_ciudades(df, 'GP')
+    graficar_mapa(df_geo)
