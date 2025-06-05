@@ -1,0 +1,93 @@
+"""
+Plebes, este webscrapper ya tiene para que extraiga dos tablas, si siguen con la misma 
+logica nomas agreguen los links de las otras tablas que quieran agregar
+"""
+
+import time
+import pandas as pd
+import mysql.connector
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+
+def crear_driver():
+    opciones = Options()
+    opciones.add_argument("--window-size=1920,1080")
+    service = Service(ChromeDriverManager().install())
+    return webdriver.Chrome(service=service, options=opciones)
+
+def guardar(df, nombre_tabla):
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Password246.",
+            database="f1"
+        )
+        cursor = conn.cursor()
+
+        cursor.execute(f"""
+            create table if not exists {nombre_tabla} (
+                id int auto_increment primary key,
+                piloto varchar(100),
+                valor int,
+                pista varchar(100)
+            )
+        """)
+        cursor.execute(f"delete from {nombre_tabla}")
+
+        for _, row in df.iterrows():
+            cursor.execute(f"""
+                insert into {nombre_tabla} (piloto, valor, pista)
+                values (%s, %s, %s)
+            """, (row["Piloto"], row["Valor"], row["Pista"]))
+
+        conn.commit()
+        print(f"Datos guardados {nombre_tabla}")
+    except Exception as e:
+        print("Error:", e)
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+def tabla(url, nombre_tabla):
+    driver = crear_driver()
+    wait = WebDriverWait(driver, 15)
+
+    try:
+        driver.get(url)
+        tabla = wait.until(EC.presence_of_element_located((By.ID, "ctl00_CPH_Main_GV_Stats")))
+        filas = tabla.find_elements(By.XPATH, ".//tbody/tr")
+
+        datos = []
+        for fila in filas:
+            celdas = fila.find_elements(By.TAG_NAME, "td")
+            if len(celdas) == 3:
+                piloto = celdas[0].text.strip()
+                valor = celdas[1].text.strip().replace(" ", "")
+                pista = celdas[2].text.strip()
+                datos.append([piloto, valor, pista])
+
+        df = pd.DataFrame(datos, columns=["Piloto", "Valor", "Pista"])
+        df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
+        guardar(df, nombre_tabla)
+
+    except Exception as e:
+        print(f"Error: {url}:", e)
+    finally:
+        driver.quit()
+
+if __name__ == "__main__":
+    tabla(
+        url="https://www.statsf1.com/es/statistiques/pilote/victoire/nombre.aspx",
+        nombre_tabla="victorias_totales"
+    )
+    tabla(
+        url="https://www.statsf1.com/es/statistiques/pilote/meilleurtour/grandprix.aspx",
+        nombre_tabla="vueltas_rapidas"
+    )
