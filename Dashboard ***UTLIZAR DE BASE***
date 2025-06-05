@@ -1,0 +1,169 @@
+import dash
+import dash_bootstrap_components as dbc
+import pandas as pd
+import plotly.express as px
+import mysql.connector
+from dash import Input, Output, dcc, html
+
+def obtener_victorias_mysql():
+    try:
+        conexion = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Password246.",
+            database="f1"
+        )
+        query = "SELECT n, piloto, nb, `%nbgp` FROM victorias_pilotos"
+        df = pd.read_sql(query, conexion)
+        return df
+    except Exception as e:
+        print("Error:", e)
+        return pd.DataFrame()
+
+app = dash.Dash(
+    external_stylesheets=[dbc.themes.MINTY],
+    index_string="""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            {%metas%}
+            <title>{%title%}</title>
+            {%favicon%}
+            {%css%}
+            <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+            <style>
+                .nav-link {
+                    color: #e94560 !important;  /* Rojo */
+                }
+                .nav-link.active {
+                    background-color: #e94560 !important;
+                    color: white !important;
+                }
+            </style>
+        </head>
+        <body>
+            {%app_entry%}
+            <footer>
+                {%config%}
+                {%scripts%}
+                {%renderer%}
+            </footer>
+        </body>
+    </html>
+    """
+)
+
+PAGE_STYLE= {
+    "background-image": "url('https://phantom-elmundo.uecdn.es/8e27ca532aae63320349a006609a7eb9/resize/1220/f/webp/assets/multimedia/imagenes/2025/04/13/17445767133764.jpg')",
+    "backgroun-size": "cover",
+    "background-position": "center",
+    "background-attachments": "fixed",
+    "min-height": "100vh"
+}
+
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": "0",
+    "left": "0",
+    "bottom": "0",
+    "width": "17rem",
+    "padding": "2rem 1rem",
+    "background-color": "#000000",
+    "color": "#e94560",
+    "box-shadow": "0 0 12px #FF2800",
+    "font-family": "'Orbitron', sans-serif",
+}
+
+CONTENT_STYLE = {
+    "margin-left": "18rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1.5rem",
+    "background-color": "rgba(10, 15, 35, 0.85)",
+    "color": "ff2800",
+    "font-family": "'Orbitron', sans-serif",
+    "min-height": "100vh",
+    "background-size": "cover",
+    "background-position": "center",
+    "background-attachment": "fixed"
+}
+
+# Sidebar con nueva entrada
+sidebar = html.Div(
+    [
+        html.Img(
+            src="https://upload.wikimedia.org/wikipedia/commons/f/f2/New_era_F1_logo.png",
+            style={"width": "100%", "margin-bottom": "20px"}),
+        html.H2(html.Span(" STATS",style={"color":"white"}),
+                style={"textAlign":"center"}),
+        html.Hr(),
+        html.P(html.Strong("Dashboard de estadísticas F1"), className="lead"),
+        dbc.Nav(
+            [
+                dbc.NavLink("Contenido", href="/", active="exact"),
+                dbc.NavLink("Introducción", href="/page-1", active="exact"),
+                dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                dbc.NavLink("Page 3", href="/page-3", active="exact"),
+                dbc.NavLink("Page 4", href="/page-4", active="exact"),
+                dbc.NavLink("Victorias", href="/page-5", active="exact"),
+            ],
+            vertical=True,
+            pills=True,
+        ),
+    ],
+    style=SIDEBAR_STYLE,
+)
+
+content = html.Div(id="page-content", style=CONTENT_STYLE)
+
+app.layout = html.Div(
+    style=PAGE_STYLE,
+    children=[
+        dcc.Location(id="url"),
+        sidebar,
+        content
+    ]
+)
+
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
+def render_page_content(pathname):
+    if pathname == "/":
+        return html.P("Página principal", style={"font-size": "20px"})
+    elif pathname == "/page-1":
+        return html.P("Introducción")
+    elif pathname == "/page-2":
+        return html.P("Contenido de la página 2")
+    elif pathname == "/page-3":
+        return html.P("Contenido de la página 3")
+    elif pathname == "/page-4":
+        return html.P("Contenido de la página 4")
+    elif pathname == "/page-5":
+        df_victorias = obtener_victorias_mysql()
+        if df_victorias.empty:
+            return html.Div("⚠️ No se pudieron cargar las estadísticas de victorias.")
+
+        fig = px.bar(df_victorias, x="piloto", y="nb", title="Victorias por Piloto", labels={"nb": "Victorias"})
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="white")
+
+        return html.Div([
+            html.H3("🏁 Estadísticas de Victorias", className="mb-4"),
+            dcc.Graph(figure=fig),
+            html.H5("Tabla de Datos"),
+            dash.dash_table.DataTable(
+                data=df_victorias.to_dict("records"),
+                columns=[{"name": i, "id": i} for i in df_victorias.columns],
+                page_size=10,
+                style_table={"overflowX": "auto"},
+                style_header={"backgroundColor": "#1a1a2e", "color": "white"},
+                style_cell={"backgroundColor": "#16213e", "color": "white", "textAlign": "center"},
+            )
+        ])
+
+    return html.Div([
+        html.H1("404: Not found", className="text-danger"),
+        html.Hr(),
+        html.P(f"The pathname {pathname} was not recognised..."),
+    ])
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
