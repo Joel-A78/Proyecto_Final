@@ -1,19 +1,9 @@
+DROP DATABASE IF EXISTS f1;
 CREATE DATABASE f1;
 USE f1;
 
-CREATE TABLE pilotos (
-    n INT,
-    Piloto VARCHAR(100),
-    Nb INT,
-    Porcentaje_Nb_GP DECIMAL(6,2)
-);
+SHOW TABLES;
 
-CREATE TABLE victorias (
-	n INT,
-    Piloto VARCHAR (100),
-    Nb INT,
-    Porcentaje_Nb_GP VARCHAR(100)
-);
-
-SELECT * FROM pilotos;
-SELECT * FROM victorias;
+SELECT * FROM victorias_totales;
+SELECT * FROM vueltas_rapidas;
+SELECT * FROM victorias_por_circuito;
