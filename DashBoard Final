@@ -26,6 +26,288 @@ import mysql.connector
 #----------------------------------------------------------------------------------
 
 
+pruebas 
+
+
+# ---------------------------------------------------------------------------------
+#                                 DASHBOARD FINAL
+#----------------------------------------------------------------------------------
+
+# IMPORTS
+#----------------------------------------------------------------------------------
+import dash
+import dash_bootstrap_components as dbc
+from dash import Input, Output, dcc, html
+import pandas as pd
+import plotly.express as px
+import mysql.connector
+from mysql.connector import Error 
+#----------------------------------------------------------------------------------
+# CONEXION A LA BASE DE DATOS
+# ---------------------------------------------------------------------------------
+
+def obtain_values_mysql(): 
+
+    try:
+        conexion = mysql.connector.connect(
+            host="127.0.0.2",
+            user="root",
+            password="12345678",
+            database="f1"
+        )
+        if conexion.is_connected():
+            print("Successfully connected to MySQL database.")
+
+            queries = {
+                "victorias_pilotos": "SELECT n, piloto, nb, `%nbgp` FROM victorias_pilotos",
+                "victorias_totales": "SELECT n, piloto, nb, `%nbgp` FROM victorias_totales",
+                "victorias_rapidas": "SELECT n, piloto, nb, `%nbgp` FROM victorias_rapidas",
+                "victorias_por_circuito": "SELECT n, piloto, nb, `%nbgp` FROM victorias_por_circuito"
+            }
+            dataframes = {}
+
+            for name, sql_query in queries.items():
+                try:
+                    dataframes[name] = pd.read_sql(sql_query, conexion)
+                    print(f"Loaded data for: {name}")
+                except Error as e:
+                    print(f"Error executing query for {name}: {e}")
+                    dataframes[name] = pd.DataFrame() #
+
+            return dataframes
+
+    except Error as e:
+        print(f"Error connecting to MySQL database: {e}")
+        return {} 
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return {}
+    finally:
+        if 'conexion' in locals() and conexion.is_connected():
+            conexion.close()
+            print("MySQL connection closed.")
+
+
+all_f1_data = obtain_values_mysql()
+
+#----------------------------------------------------------------------------------
+# DASH APP
+#----------------------------------------------------------------------------------
+
+app = dash.Dash(
+    __name__, 
+    external_stylesheets=[dbc.themes.MINTY],
+    index_string="""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            {%metas%}
+            <title>{%title%}</title>
+            {%favicon%}
+            {%css%}
+            <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+            <style>
+                body {
+                    margin: 0; /* Remove default body margin */
+                    padding: 0; /* Remove default body padding */
+                }
+                .nav-link {
+                    color: #e94560 !important;  /* Rojo */
+                }
+                .nav-link.active {
+                    background-color: #e94560 !important;
+                    color: white !important;
+                }
+            </style>
+        </head>
+        <body>
+            {%app_entry%}
+            <footer>
+                {%config%}
+                {%scripts%}
+                {%renderer%}
+            </footer>
+        </body>
+    </html>
+    """
+)
+
+#----------------------------------------------------------------------------------
+# DASHBOARD STYLE
+#----------------------------------------------------------------------------------
+
+PAGE_STYLE= {
+    "background-image": "url('https://phantom-elmundo.uecdn.es/8e27ca532aae63320349a006609a7eb9/resize/1220/f/webp/assets/multimedia/imagenes/2025/04/13/17445767133764.jpg')",
+    "background-size": "cover", 
+    "background-position": "center",
+    "background-attachment": "fixed",
+    "min-height": "100vh", 
+    "width": "100vw", 
+    "overflow-x": "hidden" 
+}
+
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": "0",
+    "left": "0",
+    "bottom": "0",
+    "width": "17rem",
+    "padding": "2rem 1rem",
+    "background-color": "#000000",
+    "color": "#e94560",
+    "box-shadow": "0 0 12px #FF2800",
+    "font-family": "'Orbitron', sans-serif",
+    "z-index": "1000", 
+}
+
+CONTENT_STYLE = {
+    "margin-left": "18rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1.5rem",
+    "background-color": "rgba(10, 15, 35, 0.85)", 
+    "color": "#ff2800", 
+    "font-family": "'Orbitron', sans-serif",
+    "min-height": "100vh",
+    
+}
+
+
+sidebar = html.Div(
+    [
+        html.Img(
+            src="https://upload.wikimedia.org/wikipedia/commons/f/f2/New_era_F1_logo.png",
+            style={"width": "100%", "margin-bottom": "20px"}),
+        html.H2(html.Span(" STATS",style={"color":"white"}),
+                style={"textAlign":"center"}),
+        html.Hr(),
+        html.P(html.Strong("Dashboard de estadísticas F1"), className="lead"),
+        dbc.Nav(
+            [
+                dbc.NavLink("Contenido", href="/", active="exact"),
+                dbc.NavLink("Introducción", href="/page-1", active="exact"),
+                dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                dbc.NavLink("Page 3", href="/page-3", active="exact"),
+                dbc.NavLink("Page 4", href="/page-4", active="exact"),
+                dbc.NavLink("Victorias", href="/victories", active="exact"), 
+            ],
+            vertical=True,
+            pills=True,
+        ),
+    ],
+    style=SIDEBAR_STYLE,
+)
+
+content = html.Div(id="page-content", style=CONTENT_STYLE)
+
+app.layout = html.Div(
+    style=PAGE_STYLE,
+    children=[
+        dcc.Location(id="url"),
+        sidebar,
+        content
+    ]
+)
+
+#----------------------------------------------------------------------------------
+# CALLBACKS
+#----------------------------------------------------------------------------------
+
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
+def render_page_content(pathname):
+
+    if pathname == "/":
+        return html.Div([
+            html.H3("Bienvenido al Dashboard de Estadísticas F1", style={"color": "white"}),
+            html.P("Explora las diferentes secciones usando el menú de la izquierda.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/page-1":
+        return html.Div([
+            html.H3("Introducción", style={"color": "white"}),
+            html.P("Aquí puedes poner una introducción a tus datos y el dashboard.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/page-2":
+        return html.Div([
+            html.H3("Página 2", style={"color": "white"}),
+            html.P("Contenido de la página 2.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/page-3":
+        return html.Div([
+            html.H3("Página 3", style={"color": "white"}),
+            html.P("Contenido de la página 3.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/page-4":
+        return html.Div([
+            html.H3("Página 4", style={"color": "white"}),
+            html.P("Contenido de la página 4.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/victories": 
+        if "victorias_pilotos" in all_f1_data and not all_f1_data["victorias_pilotos"].empty:
+            df_victorias_pilotos = all_f1_data["victorias_pilotos"]
+            fig_pilotos = px.bar(
+                df_victorias_pilotos,
+                x="piloto",
+                y="nb",
+                title="Número de Victorias por Piloto",
+                labels={"piloto": "Piloto", "nb": "Número de Victorias"},
+                color="nb", 
+                color_continuous_scale=px.colors.sequential.Inferno
+            )
+            fig_pilotos.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", 
+                plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#e94560", 
+                title_font_color="white",
+                xaxis_title_font_color="white",
+                yaxis_title_font_color="white",
+                hoverlabel=dict(bgcolor="black", font_color="white") 
+            )
+
+            total_victories_content = html.Div()
+            if "victorias_totales" in all_f1_data and not all_f1_data["victorias_totales"].empty:
+                df_victorias_totales = all_f1_data["victorias_totales"]
+                fig_totales = px.pie(
+                    df_victorias_totales,
+                    values="nb",
+                    names="piloto",
+                    title="Distribución de Victorias Totales",
+                    hole=.3 
+                )
+                fig_totales.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    font_color="#e94560",
+                    title_font_color="white",
+                    legend_font_color="white"
+                )
+                total_victories_content = dcc.Graph(figure=fig_totales)
+
+
+            return html.Div([
+                html.H3("Estadísticas de Victorias en F1", style={"color": "white"}),
+                html.P("Explora los datos de victorias de pilotos en la Fórmula 1.", style={"color": "lightgray"}),
+                dcc.Graph(figure=fig_pilotos),
+                total_victories_content, # Add the total victories graph
+                html.Br(),
+                html.P(f"Total de pilotos con victorias registrados: {len(df_victorias_pilotos)}", style={"color": "lightgray"})
+            ])
+        else:
+            return html.Div([
+                html.H3("Estadísticas de Victorias", style={"color": "white"}),
+                html.P("No se pudieron cargar los datos de victorias de pilotos.", style={"color": "red"})
+            ])
+    
+    return html.Div(
+        [
+            html.H1("404: Page Not Found", style={"color": "red"}),
+            html.Hr(style={"border-color": "#e94560"}),
+            html.P(f"The URL '{pathname}' does not exist.", style={"color": "lightgray"}),
+        ],
+        style={"padding": "20px"}
+    )
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 
 
