@@ -133,7 +133,7 @@ sidebar = html.Div(
             [
                 dbc.NavLink("Contenido", href="/", active="exact"),
                 dbc.NavLink("Introducción", href="/page-1", active="exact"),
-                dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                dbc.NavLink("Geo-Zone", href="/page-2", active="exact"),
                 dbc.NavLink("Page 3", href="/page-3", active="exact"),
                 dbc.NavLink("Page 4", href="/page-4", active="exact"),
                 dbc.NavLink("Victorias", href="/victories", active="exact"),
@@ -204,11 +204,31 @@ def render_page_content(pathname):
             dcc.Graph(id="victory-map")
         ])
 
+
     elif pathname == "/page-3":
+        df_vueltas = all_f1_data.get("vueltas_rapidas", pd.DataFrame())
+        if df_vueltas.empty:
+            return html.Div([
+                html.H3("Vueltas Rápidas", style={"color": "white"}),
+                html.P("No hay datos disponibles en la tabla `vueltas_rapidas`.", style={"color": "lightgray"})
+            ])
+
+        pistas = sorted(df_vueltas["Pista"].unique())
         return html.Div([
-            html.H3("Página 3", style={"color": "white"}),
-            html.P("Contenido de la página 3.", style={"color": "lightgray"})
+            html.H3("Vueltas Rápidas por Piloto", style={"color": "white"}),
+            html.P("Selecciona una pista para filtrar los resultados:", style={"color": "lightgray"}),
+            dcc.Dropdown(
+                id="pista-dropdown",
+                options=[{"label": pista, "value": pista} for pista in pistas],
+                value=None,
+                placeholder="Todas las pistas",
+                style={"color": "black", "margin-bottom": "20px"}
+
+            ),
+            html.Div(id="tabla-vueltas-rapidas")
+
         ])
+
     elif pathname == "/page-4":
         return html.Div([
             html.H3("Página 4", style={"color": "white"}),
@@ -298,6 +318,39 @@ def update_map(selected_piloto, selected_pista):
         title_font_color="white"
     )
     return fig
+
+@app.callback(
+    Output("tabla-vueltas-rapidas", "children"),
+    [Input("pista-dropdown", "value")]
+)
+def update_vueltas_table(selected_pista):
+    df = all_f1_data.get("vueltas_rapidas", pd.DataFrame())
+
+    if df.empty:
+        return html.P("No hay datos disponibles.", style={"color": "lightgray"})
+
+    if selected_pista:
+        df = df[df["Pista"] == selected_pista]
+
+    def generate_table(dataframe, max_rows=20):
+        return html.Table(
+            [html.Thead(html.Tr([html.Th(col, style={"color": "#e94560"}) for col in dataframe.columns]))] +
+            [html.Tbody([
+                html.Tr([
+                    html.Td(dataframe.iloc[i][col], style={"color": "white"}) for col in dataframe.columns
+                ]) for i in range(min(len(dataframe), max_rows))
+            ])],
+            style={
+                "width": "100%",
+                "borderCollapse": "collapse",
+                "backgroundColor": "rgba(255,255,255,0.05)",
+                "border": "1px solid #e94560",
+                "marginTop": "20px"
+            }
+        )
+
+    return generate_table(df)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
