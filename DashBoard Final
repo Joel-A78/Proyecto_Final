@@ -1,7 +1,9 @@
-# ---DashBoard Final--- 
-# Estadisticas de Formula 1 
+# --------------------------------------------------------------------------------- 
+#                                 DASHBOARD FINAL 
+#----------------------------------------------------------------------------------
 
-# Importaciones ------------------------
+# IMPORTS
+#----------------------------------------------------------------------------------
 
 import dash 
 import dash_bootstrap_components as dbc
@@ -10,10 +12,22 @@ from dash import Input, Output, dcc, html
 import pandas as pd 
 import plotly.express as px
 import mysql.connector
+#----------------------------------------------------------------------------------
+# CONEXION A LA BASE DE DATOS
+# ---------------------------------------------------------------------------------
 
-#---------------------------------------
-
-# ---Estructura Inicio---
 def Obtain_wins_mysql():
-
-# ---Estructura Final --- 
+    try:
+       conexion = mysql.connector.connect(
+           host = ""
+           user = ""
+           password = ""
+           database = ""
+      )
+      query = "SELECT n, piloto, nb, `%nbgp` FROM victorias_pilotos"
+      df = pd.read_sql(query, conexion)
+      return df 
+    except Exception as e:
+        print("Error:", e)
+        return pd.DataFrame()
+#---------------------------------------------------------------------------------- 
