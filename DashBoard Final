@@ -1,6 +1,19 @@
 # ---DashBoard Final--- 
 # Estadisticas de Formula 1 
 
-# Importaciones 
+# Importaciones ------------------------
+
+import dash 
+import dash_bootstrap_components as dbc
+from dash import Input, Output, dcc, html
+
+import pandas as pd 
+import plotly.express as px
+import mysql.connector
+
+#---------------------------------------
+
 # ---Estructura Inicio---
+def Obtain_wins_mysql():
+
 # ---Estructura Final --- 
