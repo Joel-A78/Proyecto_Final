@@ -19,10 +19,10 @@ import mysql.connector
 def Obtain_wins_mysql():
     try:
        conexion = mysql.connector.connect(
-           host = ""
-           user = ""
-           password = ""
-           database = ""
+           host = "127.0.0.2"
+           user = "root"
+           password = "12345678"
+           database = "f1"
       )
       query = "SELECT n, piloto, nb, `%nbgp` FROM victorias_pilotos"
       df = pd.read_sql(query, conexion)
