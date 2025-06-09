@@ -81,7 +81,7 @@ app = dash.Dash(
 
 PAGE_STYLE= {
     "background-image": "url('https://phantom-elmundo.uecdn.es/8e27ca532aae63320349a006609a7eb9/resize/1220/f/webp/assets/multimedia/imagenes/2025/04/13/17445767133764.jpg')",
-    "backgroun-size": "cover",
+    "background-size": "cover",
     "background-position": "center",
     "background-attachments": "fixed",
     "min-height": "100vh"
