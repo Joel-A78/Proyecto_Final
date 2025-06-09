@@ -24,8 +24,12 @@ def Obtain_wins_mysql():
            password = "12345678"
            database = "f1"
       )
-      query = "SELECT n, piloto, nb, `%nbgp` FROM victorias_pilotos"
-      df = pd.read_sql(query, conexion)
+      query =  "SELECT n, piloto, nb, `%nbgp` FROM victorias_pilotos"
+#     query2 = "SELECT n, piloto, nb, `%nbgp` FROM victorias_totales"
+#     query3 = "SELECT n, piloto, nb, `%nbgp` FROM victorias_rapidas"
+#     query4 = "SELECT n, piloto, nb, `%nbgp` FROM victorias_por_circuito"
+
+      df = pd.read_sql(query,query2,query3,query4, conexion)
       return df 
     except Exception as e:
         print("Error:", e)
