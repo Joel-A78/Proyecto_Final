@@ -324,3 +324,233 @@ if __name__ == "__main__":
 
 
 
+# DASH APP
+# ----------------------------------------------------------------------------------
+
+# IMPORTS
+# ----------------------------------------------------------------------------------
+import dash
+import dash_bootstrap_components as dbc
+from dash import Input, Output, dcc, html
+import pandas as pd
+import plotly.express as px
+from sqlalchemy import create_engine
+
+# ----------------------------------------------------------------------------------
+# CONEXIÓN A LA BASE DE DATOS
+# ----------------------------------------------------------------------------------
+
+def obtain_values_mysql():
+    try:
+        engine = create_engine("mysql+mysqlconnector://root:12345678@127.0.0.2/f1")
+
+        queries = {
+            "victorias_totales": "SELECT Piloto, Valor, Pista FROM victorias_totales",
+            "vueltas_rapidas": "SELECT Piloto, Valor, Pista FROM vueltas_rapidas",
+            "victorias_por_circuito": "SELECT Piloto, Valor, Pista FROM victorias_por_circuito"
+        }
+
+        dataframes = {}
+        for name, sql_query in queries.items():
+            try:
+                dataframes[name] = pd.read_sql(sql_query, con=engine)
+                print(f"Loaded data for: {name}")
+            except Exception as e:
+                print(f"Error executing query for {name}: {e}")
+                dataframes[name] = pd.DataFrame()
+
+        return dataframes
+
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return {}
+
+all_f1_data = obtain_values_mysql()
+
+# ----------------------------------------------------------------------------------
+# DASH APP
+# ----------------------------------------------------------------------------------
+
+app = dash.Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.MINTY],
+    index_string="""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            {%metas%}
+            <title>{%title%}</title>
+            {%favicon%}
+            {%css%}
+            <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+            <style>
+                body {
+                    margin: 0;
+                    padding: 0;
+                }
+                .nav-link {
+                    color: #e94560 !important;
+                }
+                .nav-link.active {
+                    background-color: #e94560 !important;
+                    color: white !important;
+                }
+            </style>
+        </head>
+        <body>
+            {%app_entry%}
+            <footer>
+                {%config%}
+                {%scripts%}
+                {%renderer%}
+            </footer>
+        </body>
+    </html>
+    """
+)
+
+# ----------------------------------------------------------------------------------
+# DASHBOARD STYLE
+# ----------------------------------------------------------------------------------
+
+PAGE_STYLE = {
+    "background-image": "url('https://phantom-elmundo.uecdn.es/8e27ca532aae63320349a006609a7eb9/resize/1220/f/webp/assets/multimedia/imagenes/2025/04/13/17445767133764.jpg')",
+    "background-size": "cover",
+    "background-position": "center",
+    "background-attachment": "fixed",
+    "min-height": "100vh",
+    "width": "100vw",
+    "overflow-x": "hidden"
+}
+
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": "0",
+    "left": "0",
+    "bottom": "0",
+    "width": "17rem",
+    "padding": "2rem 1rem",
+    "background-color": "#000000",
+    "color": "#e94560",
+    "box-shadow": "0 0 12px #FF2800",
+    "font-family": "'Orbitron', sans-serif",
+    "z-index": "1000",
+}
+
+CONTENT_STYLE = {
+    "margin-left": "18rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1.5rem",
+    "background-color": "rgba(10, 15, 35, 0.85)",
+    "color": "#ff2800",
+    "font-family": "'Orbitron', sans-serif",
+    "min-height": "100vh",
+}
+
+sidebar = html.Div(
+    [
+        html.Img(
+            src="https://upload.wikimedia.org/wikipedia/commons/f/f2/New_era_F1_logo.png",
+            style={"width": "100%", "margin-bottom": "20px"}),
+        html.H2(html.Span(" STATS", style={"color": "white"}), style={"textAlign": "center"}),
+        html.Hr(),
+        html.P(html.Strong("Dashboard de estadísticas F1"), className="lead"),
+        dbc.Nav(
+            [
+                dbc.NavLink("Contenido", href="/", active="exact"),
+                dbc.NavLink("Introducción", href="/page-1", active="exact"),
+                dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                dbc.NavLink("Page 3", href="/page-3", active="exact"),
+                dbc.NavLink("Page 4", href="/page-4", active="exact"),
+                dbc.NavLink("Victorias", href="/victories", active="exact"),
+            ],
+            vertical=True,
+            pills=True,
+        ),
+    ],
+    style=SIDEBAR_STYLE,
+)
+
+content = html.Div(id="page-content", style=CONTENT_STYLE)
+
+app.layout = html.Div(
+    style=PAGE_STYLE,
+    children=[
+        dcc.Location(id="url"),
+        sidebar,
+        content
+    ]
+)
+
+# ----------------------------------------------------------------------------------
+# CALLBACKS
+# ----------------------------------------------------------------------------------
+
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
+def render_page_content(pathname):
+    if pathname == "/":
+        return html.Div([
+            html.H3("Bienvenido al Dashboard de Estadísticas F1", style={"color": "white"}),
+            html.P("Explora las diferentes secciones usando el menú de la izquierda.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/page-1":
+        return html.Div([
+            html.H3("Introducción", style={"color": "white"}),
+            html.P("Aquí puedes poner una introducción a tus datos y el dashboard.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/page-2":
+        return html.Div([
+            html.H3("Página 2", style={"color": "white"}),
+            html.P("Contenido de la página 2.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/page-3":
+        return html.Div([
+            html.H3("Página 3", style={"color": "white"}),
+            html.P("Contenido de la página 3.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/page-4":
+        return html.Div([
+            html.H3("Página 4", style={"color": "white"}),
+            html.P("Contenido de la página 4.", style={"color": "lightgray"})
+        ])
+    elif pathname == "/victories":
+        if "victorias_totales" in all_f1_data and not all_f1_data["victorias_totales"].empty:
+            df_victorias = all_f1_data["victorias_totales"]
+            fig = px.bar(
+                df_victorias,
+                x="Piloto",
+                y="Valor",
+                color="Pista",
+                title="Victorias Totales por Piloto",
+                labels={"Piloto": "Piloto", "Valor": "Total Victorias"},
+                color_discrete_sequence=px.colors.qualitative.Bold
+            )
+            fig.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#e94560",
+                title_font_color="white",
+                xaxis_title_font_color="white",
+                yaxis_title_font_color="white",
+                hoverlabel=dict(bgcolor="black", font_color="white")
+            )
+            return html.Div([
+                html.H3("Victorias Totales", style={"color": "white"}),
+                dcc.Graph(figure=fig)
+            ])
+        else:
+            return html.Div([
+                html.H3("No se encontraron datos de victorias.", style={"color": "red"})
+            ])
+
+    return html.Div(
+        [
+            html.H1("404: Página no encontrada", style={"color": "red"}),
+            html.Hr(style={"border-color": "#e94560"}),
+            html.P(f"La URL '{pathname}' no existe.", style={"color": "lightgray"}),
+        ],
+        style={"padding": "20px"}
+    )
+
+if __name__ == "__main__":
+    app.run(debug=True)
