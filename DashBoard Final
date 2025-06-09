@@ -29,7 +29,11 @@ def Obtain_values_mysql():
       query3 = "SELECT n, piloto, nb, `%nbgp` FROM victorias_rapidas"
       query4 = "SELECT n, piloto, nb, `%nbgp` FROM victorias_por_circuito"
 
-      df = pd.read_sql(query,query2,query3,query4, conexion)
+      df = pd.read_sql(query, conexion)
+      df = pd.read_sql(query2, conexion)
+      df = pd.read_sql(query3, conexion)
+      df = pd.read_sql(query4, conexion)
+
       return df 
     except Exception as e:
         print("Error:", e)
