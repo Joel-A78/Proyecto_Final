@@ -173,10 +173,37 @@ def render_page_content(pathname):
             html.P("Aquí puedes poner una introducción a tus datos y el dashboard.", style={"color": "lightgray"})
         ])
     elif pathname == "/page-2":
+        df = all_f1_data["victorias_por_circuito"]
+        pilotos = df["Piloto"].unique()
+        pistas = df["Pista"].unique()
+
         return html.Div([
-            html.H3("Página 2", style={"color": "white"}),
-            html.P("Contenido de la página 2.", style={"color": "lightgray"})
+            html.H3("Mapa de Victorias por Circuito", style={"color": "white"}),
+            dbc.Row([
+                dbc.Col([
+                    html.Label("Selecciona Piloto", style={"color": "white"}),
+                    dcc.Dropdown(
+                        id="piloto-filter",
+                        options=[{"label": p, "value": p} for p in pilotos],
+                        value=None,
+                        placeholder="Todos",
+                        style={"color": "black"}
+                    )
+                ], md=6),
+                dbc.Col([
+                    html.Label("Selecciona Circuito", style={"color": "white"}),
+                    dcc.Dropdown(
+                        id="pista-filter",
+                        options=[{"label": c, "value": c} for c in pistas],
+                        value=None,
+                        placeholder="Todos",
+                        style={"color": "black"}
+                    )
+                ], md=6),
+            ]),
+            dcc.Graph(id="victory-map")
         ])
+
     elif pathname == "/page-3":
         return html.Div([
             html.H3("Página 3", style={"color": "white"}),
@@ -225,6 +252,52 @@ def render_page_content(pathname):
         ],
         style={"padding": "20px"}
     )
+
+# Callback para el mapa en Page 2
+@app.callback(
+    Output("victory-map", "figure"),
+    [Input("piloto-filter", "value"), Input("pista-filter", "value")]
+)
+def update_map(selected_piloto, selected_pista):
+    df = all_f1_data["victorias_por_circuito"]
+
+    # Opcional: aquí deberías tener lat/long de cada pista. De ejemplo pondré dummy coords.
+    pista_coords = {
+        "Monza": (45.6156, 9.2811),
+        "Silverstone": (52.0786, -1.0169),
+        "Spa": (50.4372, 5.9714),
+        # Agrega más si tienes
+    }
+
+    df = df.copy()
+    df["lat"] = df["Pista"].map(lambda x: pista_coords.get(x, (0, 0))[0])
+    df["lon"] = df["Pista"].map(lambda x: pista_coords.get(x, (0, 0))[1])
+
+    if selected_piloto:
+        df = df[df["Piloto"] == selected_piloto]
+    if selected_pista:
+        df = df[df["Pista"] == selected_pista]
+
+    fig = px.scatter_geo(
+        df,
+        lat="lat",
+        lon="lon",
+        text="Pista",
+        size="Valor",
+        color="Piloto",
+        hover_name="Pista",
+        projection="natural earth",
+        title="Victorias por Circuito",
+        color_discrete_sequence=px.colors.qualitative.Prism
+    )
+    fig.update_layout(
+        geo=dict(bgcolor='rgba(0,0,0,0)'),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="#e94560",
+        title_font_color="white"
+    )
+    return fig
 
 if __name__ == "__main__":
     app.run(debug=True)
