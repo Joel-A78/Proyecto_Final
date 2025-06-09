@@ -24,6 +24,7 @@ def Obtain_values_mysql():
            password = "12345678",
            database = "f1"
       )
+      
       query =  "SELECT n, piloto, nb, `%nbgp` FROM victorias_pilotos"
       query2 = "SELECT n, piloto, nb, `%nbgp` FROM victorias_totales"
       query3 = "SELECT n, piloto, nb, `%nbgp` FROM victorias_rapidas"
