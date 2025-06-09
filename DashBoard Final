@@ -19,9 +19,9 @@ import mysql.connector
 def Obtain_values_mysql():
     try:
        conexion = mysql.connector.connect(
-           host = "127.0.0.2"
-           user = "root"
-           password = "12345678"
+           host = "127.0.0.2",
+           user = "root",
+           password = "12345678",
            database = "f1"
       )
       query =  "SELECT n, piloto, nb, `%nbgp` FROM victorias_pilotos"
