@@ -169,7 +169,7 @@ def render_page_content(pathname):
             html.H3("Bienvenido al Dashboard de Estadísticas F1", style={"color": "white"}),
             html.P("Explora las diferentes secciones usando el menú de la izquierda.", style={"color": "lightgray"}),
             html.P("Este dashboard se inició como proyecto de la asignatura de Programación para Extracción"
-                   "de datos, la cual nos ha permitido seleccionar libremente este tema. esperemos y les guste",
+                   " de datos, la cual nos ha permitido seleccionar libremente este tema. esperemos y les guste",
                    style={"color": "lightgray"})
         ])
     elif pathname == "/page-1":
