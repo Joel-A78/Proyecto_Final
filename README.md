@@ -1,4 +1,4 @@
-Pasos recomendados para correos los códigos:
+Pasos recomendados para correr los códigos:
 
 Crear en PyCharm una carpeta llamada ‘PF’
 
