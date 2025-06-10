@@ -134,8 +134,7 @@ sidebar = html.Div(
                 dbc.NavLink("Contenido", href="/", active="exact"),
                 dbc.NavLink("Introducción", href="/page-1", active="exact"),
                 dbc.NavLink("Geo-Zone", href="/page-2", active="exact"),
-                dbc.NavLink("Page 3", href="/page-3", active="exact"),
-                dbc.NavLink("Page 4", href="/page-4", active="exact"),
+                dbc.NavLink("Vueltas Rapidas", href="/page-3", active="exact"),
                 dbc.NavLink("Victorias", href="/victories", active="exact"),
             ],
             vertical=True,
@@ -173,9 +172,15 @@ def render_page_content(pathname):
             html.P("Aquí puedes poner una introducción a tus datos y el dashboard.", style={"color": "lightgray"})
         ])
     elif pathname == "/page-2":
-        df = all_f1_data["victorias_por_circuito"]
-        pilotos = df["Piloto"].unique()
-        pistas = df["Pista"].unique()
+        df = all_f1_data.get("victorias_por_circuito", pd.DataFrame())
+        if df.empty or not {"Piloto", "Pista", "Valor"}.issubset(df.columns):
+            return html.Div([
+                html.H3("Geo-Zone: Victorias por Circuito", style={"color": "white"}),
+                html.P("No hay datos disponibles para esta sección.", style={"color": "lightgray"})
+            ])
+
+        pilotos = sorted(df["Piloto"].dropna().unique())
+        pistas = sorted(df["Pista"].dropna().unique())
 
         return html.Div([
             html.H3("Mapa de Victorias por Circuito", style={"color": "white"}),
@@ -204,7 +209,6 @@ def render_page_content(pathname):
             dcc.Graph(id="victory-map")
         ])
 
-
     elif pathname == "/page-3":
         df_vueltas = all_f1_data.get("vueltas_rapidas", pd.DataFrame())
         if df_vueltas.empty:
@@ -229,11 +233,6 @@ def render_page_content(pathname):
 
         ])
 
-    elif pathname == "/page-4":
-        return html.Div([
-            html.H3("Página 4", style={"color": "white"}),
-            html.P("Contenido de la página 4.", style={"color": "lightgray"})
-        ])
     elif pathname == "/victories":
         if "victorias_totales" in all_f1_data and not all_f1_data["victorias_totales"].empty:
             df_victorias = all_f1_data["victorias_totales"]
@@ -279,19 +278,66 @@ def render_page_content(pathname):
     [Input("piloto-filter", "value"), Input("pista-filter", "value")]
 )
 def update_map(selected_piloto, selected_pista):
-    df = all_f1_data["victorias_por_circuito"]
+    df = all_f1_data.get("victorias_por_circuito", pd.DataFrame())
 
-    # Opcional: aquí deberías tener lat/long de cada pista. De ejemplo pondré dummy coords.
+    if df.empty or not {"Piloto", "Pista", "Valor"}.issubset(df.columns):
+        return px.scatter_geo(title="Datos no disponibles")
+
     pista_coords = {
-        "Monza": (45.6156, 9.2811),
-        "Silverstone": (52.0786, -1.0169),
-        "Spa": (50.4372, 5.9714),
-        # Agrega más si tienes
+        'Monza': (45.6156, 9.2811),
+        'Silverstone': (52.0786, -1.0169),
+        'Spa': (50.4372, 5.9714),
+        'Interlagos': (-23.7036, -46.6997),
+        'Suzuka': (34.8431, 136.5419),
+        'Monaco': (43.7347, 7.4206),
+        'Red Bull Ring': (47.2197, 14.7647),
+        'Circuit of the Americas': (30.1328, -97.6411),
+        'Hungaroring': (47.5789, 19.2486),
+        'Imola': (44.3439, 11.7167),
+        'Zandvoort': (52.3889, 4.5400),
+        'Bahrain': (26.0325, 50.5106),
+        'Jeddah': (21.6319, 39.1044),
+        'Melbourne': (-37.8497, 144.9680),
+        'Singapore': (1.2914, 103.8640),
+        'Las Vegas': (36.1147, -115.1728),
+        'Miami': (25.9581, -80.2389),
+        'Montreal': (45.5058, -73.5227),
+        'Barcelona': (41.5701, 2.2615),
+        'Shanghai': (31.3389, 121.2216),
+        'Baku': (40.3725, 49.8533),
+        'Qatar': (25.4864, 51.4542),
+        'Abu Dhabi': (24.4672, 54.6031),
+        'Hockenheim': (49.32,8.56 ),
+        'Spa-Francorchamps': (50.437222, 5.971388),
+        'Magny-Cours': (46.86333 , -3.16333),
+        'CiudaddeMexico': (19.4033699, -99.0922377),
+        'KualaLumpur': (3.1478 , 101.6953),
+        'Shanghái': (31.22222, 121.45806),
+        'BuenosAires': (-34.694272,-58.459347),
+        'Spielberg': (47.21972 , -14.76472),
+        'Sakhir': (26.0325, 50.510555555556),
+        'Estambul': (40.951667, 29.405),
+        'YasMarina': (24.45118, 54.39696),
+        'Singapur': (1.352083, 103.819836),
+        'Estoril': (38.75083 , -9.39417),
+        'BrandsHatch': (51.358888888889, 0.26472222222222),
+        'Kyalami': (-26.2049, 28.0749),
+        'Nürburgring': (50.3394, 7.0233),
+        'WatkinsGlen': (42.36583, 76.88667),
+        'Jacarepagua': (-22.975555555556, -43.395),
+        'LeCastellet': (43.2502, 5.7583),
+        'Indianapolis': (39.7768, 86.2900),
+        'Reims': (49.1515, 3.92917),
+        'Austin': (30.1361, 97.6217),
+        'Sochi': (43.4181, 39.9308),
+        'NuevaDeli': (28.64, 77.23),
+        'Yeongam': (34.75, 126.54),
+        'Österreichring': (47.2345, 14.6805),
+        'Detroit': (42.3065, 83.0441)
     }
 
     df = df.copy()
-    df["lat"] = df["Pista"].map(lambda x: pista_coords.get(x, (0, 0))[0])
-    df["lon"] = df["Pista"].map(lambda x: pista_coords.get(x, (0, 0))[1])
+    df[["lat", "lon"]] = df["Pista"].apply(lambda x: pd.Series(pista_coords.get(x, (0, 0))))
 
     if selected_piloto:
         df = df[df["Piloto"] == selected_piloto]
@@ -310,13 +356,17 @@ def update_map(selected_piloto, selected_pista):
         title="Victorias por Circuito",
         color_discrete_sequence=px.colors.qualitative.Prism
     )
+
     fig.update_layout(
         geo=dict(bgcolor='rgba(0,0,0,0)'),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font_color="#e94560",
-        title_font_color="white"
+        title_font_color="white",
+        margin=dict(l=0, r=0, t=50, b=0),
+        title_x=0.5,
     )
+
     return fig
 
 @app.callback(
