@@ -3,7 +3,6 @@
 
 # IMPORTS
 # ----------------------------------------------------------------------------------
-import dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output, dcc, html
 import pandas as pd
@@ -134,8 +133,8 @@ sidebar = html.Div(
         html.P(html.Strong("Dashboard de estadísticas F1"), className="lead"),
         dbc.Nav(
             [
-                dbc.NavLink("Contenido", href="/", active="exact"),
-                dbc.NavLink("Introducción", href="/page-1", active="exact"),
+                dbc.NavLink("Inicio", href="/", active="exact"),
+                dbc.NavLink("Contenido", href="/page-1", active="exact"),
                 dbc.NavLink("Geo-Zone", href="/page-2", active="exact"),
                 dbc.NavLink("Fast-Track", href="/page-3", active="exact"),
                 dbc.NavLink("Total Wins", href="/victories", active="exact"),
@@ -169,8 +168,14 @@ def render_page_content(pathname):
             html.H3("Bienvenido al Dashboard de Estadísticas F1", style={"color": "white"}),
             html.P("Explora las diferentes secciones usando el menú de la izquierda.", style={"color": "lightgray"}),
             html.P("Este dashboard se inició como proyecto de la asignatura de Programación para Extracción"
-                   " de datos, la cual nos ha permitido seleccionar libremente este tema. esperemos y les guste",
-                   style={"color": "lightgray"})
+                   " de datos, la cual nos ha permitido seleccionar libremente este tema. En este equipo colaboramos:",
+                   style={"color": "lightgray"}),
+            html.Ol("1. Cadillo Armenta Mario Alberto", style={"color": "lightgray"}),
+            html.Ol("2. González Gomez Arturo Andre", style={"color": "lightgray"}),
+            html.Ol("3. Morones Martinez Victor Andre", style={"color": "lightgray"}),
+            html.Ol("4. Sanchez Romero Ivan Yair", style={"color": "lightgray"}),
+            html.Ol("5. Tejeda Estrada Joel Alejandro", style={"color": "lightgray"}),
+            html.Ol("6. Ugarte Osuna Maximiliano", style={"color": "lightgray"})
         ])
     elif pathname == "/page-1":
         return html.Div([
@@ -180,10 +185,11 @@ def render_page_content(pathname):
                     style={"color": "lightgray"}),
             html.Ul("Fast-Track: Tabla de las vueltas más rápidas por piloto, considerando sus tiempos y en qué circuitos",
                     style={"color": "lightgray"}),
-            html.Ul("Victorias: Gráfica de las victorias totales por piloto en los años que participaron",
+            html.Ul("Total Wins: Gráfica de las victorias totales por piloto en los años que participaron",
                     style={"color": "lightgray"}),
-            html.P("Todos los datos se toman desde 1950, que es el primer año de la Fórmula 1 hasta este año,"
-                   "2025, siendo el F175, es decir, el aniversario número 75 de la categoría más alta de automovilismo",
+            html.P("Todos los datos se toman desde 1950, que es el primer año de la Fórmula 1, hasta la última "
+                   "carrera de este año, 2025, siendo el F175, es decir, el aniversario número 75 de la categoría más "
+                   "alta de automovilismo",
                    style={"color": "lightgray"})
         ])
     elif pathname == "/page-2":
@@ -319,7 +325,7 @@ def update_map(selected_piloto, selected_pista):
         'Singapore': (1.2914, 103.8640),
         'Las Vegas': (36.1147, -115.1728),
         'Miami': (25.9581, -80.2389),
-        'Montreal': (45.5058, -73.5227),
+        'Montreal': (45.500555555556, -73.5225),
         'Barcelona': (41.5701, 2.2615),
         'Shanghai': (31.3389, 121.2216),
         'Baku': (40.3725, 49.8533),
